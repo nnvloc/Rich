@@ -13,7 +13,6 @@ export const addResult = createAsyncThunk(
   'results/addResults',
   async (params, thunkAPI) => {
     const response = await HttpLayer.post('result/add', params);
-    console.log('add result response: ', response);
     return {data: response.data};
   },
 );

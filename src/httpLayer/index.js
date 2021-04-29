@@ -22,9 +22,7 @@ class HttpLayer {
   }
 
   post(url, params) {
-    console.log('post params: ', params);
     const uri = this.#prepareUrl(url);
-    console.log('uri: ', uri);
     return axiosInstance.post(uri, params);
   }
 

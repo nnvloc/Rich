@@ -17,13 +17,13 @@ const rootReducer = createSlice({
         payload: {data},
       } = action;
 
-      console.log('received data: ', data);
+      state.data = {...data};
     },
     [addResult.fulfilled]: (state, action) => {
       const {
         payload: {data},
       } = action;
-      console.log('added result: ', data);
+      state.data = {...state.data, [data.date]: {...data}};
     },
   },
 });

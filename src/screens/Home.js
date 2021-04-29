@@ -1,5 +1,4 @@
 import React, {useState, useEffect} from 'react';
-import {useDispatch} from 'react-redux';
 
 import {DispatchUnwrapResult} from '../redux/helpers';
 import {validateResult, validateDate} from './validations';
@@ -12,30 +11,32 @@ import {
   SafeAreaView,
   KeyboardAvoidingView,
   Platform,
+  FlatList,
   Alert,
   TouchableOpacity,
 } from 'react-native';
 
-import {getResult, addResult} from '../redux/actions';
+import {handleGetData} from '../services';
+import {useGetFilteredResults} from '../redux/selectors';
+
+import {addResult} from '../redux/actions';
 
 const HomeScreen = () => {
-  const dispatch = useDispatch();
   const [date, setDate] = useState('');
   const [result, setResult] = useState('');
   const [extra, setExtra] = useState('');
   const [formErrors, setError] = useState(null);
 
-  const handleGetData = async (params) => {
-    try {
-      return await DispatchUnwrapResult(getResult, params);
-    } catch (err) {
-      console.log('error: ', err);
-    }
-  };
-
   useEffect(() => {
-    handleGetData({});
-  });
+    handleGetData();
+  }, []);
+
+  const rootData = useGetFilteredResults();
+  const sortData = () => {
+    return rootData.sort((a, b) => {
+      return a.date.isSameOrBefore(b.date) ? 1 : -1;
+    });
+  };
 
   const onChangeDate = (text) => {
     setDate(text);
@@ -71,9 +72,6 @@ const HomeScreen = () => {
 
   const onSubmit = async () => {
     const errors = formValidate();
-
-    console.log('form validate errors: ', errors);
-
     if (Object.keys(errors).length) {
       setError(errors);
       return;
@@ -87,19 +85,30 @@ const HomeScreen = () => {
     }
   };
 
+  const clearInputs = () => {
+    setDate('');
+    setResult('');
+    setExtra('');
+  };
+
   const handleSubmit = async (params) => {
     try {
       const addedResult = await DispatchUnwrapResult(addResult, params);
       Alert.alert(
         'Add Result',
-        `Add result success: ${addedResult.date}`,
+        `Add result success: ${addedResult.data.date}`,
         [
           {
             text: 'Cancel',
             onPress: () => null,
             style: 'cancel',
           },
-          {text: 'OK', onPress: () => null},
+          {
+            text: 'OK',
+            onPress: () => {
+              clearInputs();
+            },
+          },
         ],
         {cancelable: false},
       );
@@ -126,6 +135,19 @@ const HomeScreen = () => {
     );
   };
 
+  const renderItemSeparator = () => {
+    return <View style={styles.itemSeparator} />;
+  };
+
+  const renderItem = ({item}) => {
+    return (
+      <View style={styles.itemContainer}>
+        <Text style={styles.itemDate}>{item.key}</Text>
+        <Text style={styles.itemValue}>{item.value.join(', ')}</Text>
+      </View>
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
@@ -134,6 +156,7 @@ const HomeScreen = () => {
           <View style={styles.formGroup}>
             <Text>Date</Text>
             <TextInput
+              value={date}
               mode="flat"
               style={styles.textInput}
               placeholder="Enter date"
@@ -146,6 +169,7 @@ const HomeScreen = () => {
           <View style={styles.formGroup}>
             <Text>Result</Text>
             <TextInput
+              value={result}
               mode="flat"
               style={styles.textInput}
               placeholder="Enter result"
@@ -157,6 +181,7 @@ const HomeScreen = () => {
           <View style={styles.formGroup}>
             <Text>Extra</Text>
             <TextInput
+              value={extra}
               mode="flat"
               style={styles.textInput}
               placeholder="Enter Extra"
@@ -171,6 +196,12 @@ const HomeScreen = () => {
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
+      <FlatList
+        data={sortData(rootData)}
+        keyExtractor={(item) => item.key.toString()}
+        ItemSeparatorComponent={renderItemSeparator}
+        renderItem={renderItem}
+      />
     </SafeAreaView>
   );
 };
@@ -207,6 +238,21 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: 'red',
+  },
+  itemContainer: {
+    alignItems: 'flex-start',
+    paddingHorizontal: 16,
+  },
+  itemSeparator: {
+    marginVertical: 10,
+    height: 1,
+    backgroundColor: 'grey',
+  },
+  itemValue: {
+    fontSize: 18,
+  },
+  itemDate: {
+    fontSize: 18,
   },
 });
 

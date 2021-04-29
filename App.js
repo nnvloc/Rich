@@ -23,6 +23,6 @@ const App = () => {
       </NavigationContainer>
     </StoreProvider>
   );
-}
+};
 
 export default App;

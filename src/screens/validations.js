@@ -1,6 +1,6 @@
-import customParseFormat from 'dayjs/plugin/customParseFormat';
 import dayjs from 'dayjs';
 import {duplicates} from '../utils/helpers';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
 
 dayjs.extend(customParseFormat);
 
