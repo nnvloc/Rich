@@ -3,6 +3,8 @@ import React, {useState, useEffect, memo, useCallback} from 'react';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 
+import {useNavigation} from '@react-navigation/native'
+
 import {filterData} from '../utils/helpers';
 
 import {
@@ -14,18 +16,26 @@ import {
   Modal,
   FlatList,
   TouchableOpacity,
+  Picker,
 } from 'react-native';
 
 import {useGetFilteredResults} from '../redux/selectors';
 
 dayjs.extend(customParseFormat);
 
+const SORT_BY = {
+  NUMBER: 'number',
+  FREQUENCY: 'frequency',
+};
+
 const BingoValueScreen = () => {
+  const navigation = useNavigation();
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [dayOfWeek, setDayOfWeek] = useState('');
   const [formErrors, setError] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [sortBy, setSortBy] = useState(SORT_BY.NUMBER);
 
   const rootData = useGetFilteredResults();
 
@@ -74,11 +84,15 @@ const BingoValueScreen = () => {
   };
 
   const sortResults = () => {
-    return data.sort((a, b) => {
-      const aCount = a.count;
-      const bCount = b.count;
-      return bCount - aCount;
-    });
+    return sortBy === SORT_BY.FREQUENCY
+      ? data.sort((a, b) => {
+        const aCount = a.count;
+        const bCount = b.count;
+        return bCount - aCount;
+      })
+      : data.sort((a, b) => {
+        return a.value - b.value;
+      });
   };
 
   // Render functions
@@ -104,12 +118,19 @@ const BingoValueScreen = () => {
     return <View style={styles.itemSeparator} />;
   };
 
+  const onItemClicked = (item) => {
+    const {value} = item;
+    navigation.push('NumberDetails', {
+      value,
+    });
+  }
+
   const renderItem = ({item}) => {
     return (
-      <View style={styles.itemContainer}>
+      <TouchableOpacity style={styles.itemContainer} onPress={() => onItemClicked(item)}>
         <Text style={styles.itemValue}>{item.value}</Text>
         <Text style={styles.itemCount}>{item.count}</Text>
-      </View>
+      </TouchableOpacity>
     );
   };
 
@@ -155,6 +176,17 @@ const BingoValueScreen = () => {
               defaultValue={dayOfWeek}
               autoCapitalize="none"
             />
+          </View>
+          <View>
+            <Text>Sort by</Text>
+            <Picker
+              selectedValue={sortBy}
+              style={{ height: 50, width: 150 }}
+              onValueChange={(itemValue, itemIndex) => setSortBy(itemValue)}
+            >
+              <Picker.Item label={SORT_BY.NUMBER} value={SORT_BY.NUMBER} />
+              <Picker.Item label={SORT_BY.FREQUENCY} value={SORT_BY.FREQUENCY} />
+            </Picker>
           </View>
           {renderErrors()}
           <TouchableOpacity onPress={onSubmit} style={styles.submitBtn}>

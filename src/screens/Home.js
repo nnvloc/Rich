@@ -21,6 +21,8 @@ import {useGetFilteredResults} from '../redux/selectors';
 
 import {addResult} from '../redux/actions';
 
+import {sortResultsByDate} from '../utils/helpers';
+
 const HomeScreen = () => {
   const [date, setDate] = useState('');
   const [result, setResult] = useState('');
@@ -32,11 +34,6 @@ const HomeScreen = () => {
   }, []);
 
   const rootData = useGetFilteredResults();
-  const sortData = () => {
-    return rootData.sort((a, b) => {
-      return a.date.isSameOrBefore(b.date) ? 1 : -1;
-    });
-  };
 
   const onChangeDate = (text) => {
     setDate(text);
@@ -148,6 +145,11 @@ const HomeScreen = () => {
     );
   };
 
+  const footerComponent = () => (
+    <View style={{marginVertical: 20}}>
+    </View>
+  );
+
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
@@ -197,10 +199,11 @@ const HomeScreen = () => {
         </View>
       </KeyboardAvoidingView>
       <FlatList
-        data={sortData(rootData)}
+        data={sortResultsByDate(rootData)}
         keyExtractor={(item) => item.key.toString()}
         ItemSeparatorComponent={renderItemSeparator}
         renderItem={renderItem}
+        listFooterComponent={footerComponent}
       />
     </SafeAreaView>
   );

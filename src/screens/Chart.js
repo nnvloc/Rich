@@ -1,12 +1,23 @@
 import React from 'react';
-import {View, Text} from 'react-native';
+import {View, StyleSheet} from 'react-native';
 
 const ChartScreen = () => {
   return (
-    <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-      <Text>Chart!</Text>
+    <View style={{flex: 1}}>
+      <View style={styles.container}>
+      </View>
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F5FCFF'
+  },
+  chart: {
+    flex: 1
+  }
+})
 
 export default ChartScreen;
